@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d6b54">
+<title>Santa Juliana Maps</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<style>
+:root{--green:#0d6b54;--green2:#0a513f;--ink:#17251f;--muted:#6b7b74;--line:#e1e9e5;--paper:#fff;--bg:#f2f6f4;--blue:#2678ee}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg)}body{overflow:hidden}.app{height:100dvh;display:flex;flex-direction:column}.top{background:linear-gradient(140deg,var(--green),var(--green2));color:white;padding:calc(env(safe-area-inset-top) + 14px) 16px 17px;box-shadow:0 3px 14px #0a513f2b;z-index:500}.brand{display:flex;align-items:center;gap:10px}.logo{width:42px;height:42px;border-radius:14px;background:#ffffff1c;border:1px solid #ffffff45;display:grid;place-items:center;font-size:22px}.brand h1{font-size:19px;line-height:1.1;margin:0;font-weight:750;letter-spacing:-.3px}.brand p{font-size:12px;opacity:.82;margin:4px 0 0}.search{display:flex;gap:8px;margin-top:15px}.search input{flex:1;min-width:0;border:0;border-radius:13px;background:white;color:var(--ink);padding:14px 13px;font-size:15px;outline:none;box-shadow:0 1px 3px #00000010}.search button,.action{border:0;border-radius:13px;background:#f6c85d;color:#34280a;font-weight:750;padding:0 16px;font-size:14px;white-space:nowrap}.subhint{font-size:11px;opacity:.76;margin:8px 2px 0}#map{flex:1;min-height:180px;z-index:1}.mapcontrols{position:absolute;right:14px;bottom:calc(102px + env(safe-area-inset-bottom));z-index:400;display:flex;flex-direction:column;gap:9px}.mapbtn{height:46px;width:46px;border:0;border-radius:15px;background:white;box-shadow:0 3px 14px #183c2b25;color:var(--green);font-size:21px;display:grid;place-items:center}.sheet{z-index:450;background:var(--paper);border-radius:20px 20px 0 0;padding:14px 16px calc(13px + env(safe-area-inset-bottom));box-shadow:0 -4px 22px #173b2a12}.grab{width:36px;height:4px;border-radius:4px;background:#d7e1dc;margin:0 auto 13px}.sheethead{display:flex;align-items:center;justify-content:space-between;gap:10px}.sheethead h2{font-size:15px;margin:0;font-weight:750}.pill{font-size:10px;background:#e7f5ef;color:#0b6b50;border-radius:20px;padding:6px 9px;font-weight:750;letter-spacing:.3px}.info{font-size:12px;line-height:1.4;color:var(--muted);margin:8px 0 12px}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.action{padding:13px 9px;background:#edf5f1;color:var(--green);border:1px solid #dcebe3;display:flex;align-items:center;justify-content:center;gap:7px}.action.primary{background:var(--green);color:white;border-color:var(--green)}.status{font-size:11px;color:var(--muted);margin-top:10px;min-height:14px}.leaflet-control-attribution{font-size:9px!important}.leaflet-popup-content-wrapper{border-radius:12px}.pin-label{font-weight:700}.toast{position:absolute;left:14px;right:70px;bottom:calc(112px + env(safe-area-inset-bottom));z-index:600;background:#17251fee;color:#fff;padding:11px 13px;border-radius:12px;font-size:12px;line-height:1.4;display:none}.toast.show{display:block}@media(min-width:760px){.app{max-width:520px;margin:auto;border-left:1px solid var(--line);border-right:1px solid var(--line);box-shadow:0 0 45px #1e49351a}.top{padding-top:18px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand"><div class="logo">⌖</div><div><h1>Santa Juliana Maps</h1><p>Seu mapa local • Santa Juliana, MG</p></div></div>
+    <form class="search" id="searchForm"><input id="destination" autocomplete="street-address" placeholder="Rua, número ou lugar…" aria-label="Pesquisar endereço"><button type="submit">Buscar</button></form>
+    <div class="subhint">Ex.: Rua + número, bairro ou ponto de referência</div>
+  </header>
+  <div id="map" aria-label="Mapa de Santa Juliana"></div>
+  <div class="mapcontrols"><button class="mapbtn" id="locate" aria-label="Minha localização" title="Minha localização">◎</button><button class="mapbtn" id="zoomIn" aria-label="Aumentar zoom">＋</button><button class="mapbtn" id="zoomOut" aria-label="Diminuir zoom">−</button></div>
+  <div class="toast" id="toast" role="status"></div>
+  <section class="sheet">
+    <div class="grab"></div><div class="sheethead"><h2 id="sheetTitle">Pronto para explorar a cidade?</h2><span class="pill">VERSÃO DE TESTE</span></div>
+    <p class="info" id="sheetInfo">O mapa mostra a região central. Pesquise um endereço para abrir a busca no Apple Maps ou use sua localização para iniciar uma rota.</p>
+    <div class="actions"><button class="action" id="openSearch">⌕ &nbsp; Abrir busca</button><button class="action primary" id="navigate">➤ &nbsp; Traçar rota</button></div>
+    <div class="status" id="status">GPS ainda não iniciado. Toque em ◎ para compartilhar sua localização.</div>
+  </section>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+(() => {
+  const CITY = 'Santa Juliana, MG, Brasil';
+  const CENTER = [-19.3086, -47.5250];
+  const map = L.map('map', {zoomControl:false, tap:true}).setView(CENTER, 14);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'}).addTo(map);
+  L.marker(CENTER).addTo(map).bindPopup('<span class="pin-label">Santa Juliana, MG</span><br>Centro aproximado da cidade');
+  const $ = id => document.getElementById(id);
+  let current = null, currentMarker = null, target = null, targetMarker = null, watchId = null;
+  function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove('show'),5000)}
+  function query(){return $('destination').value.trim()}
+  function fullQuery(){const q=query();return q ? q+', Santa Juliana, MG, Brasil' : CITY}
+  function appleSearch(){if(!query()){toast('Digite uma rua, número ou lugar para pesquisar.');$('destination').focus();return}window.open('https://maps.apple.com/?q='+encodeURIComponent(fullQuery()),'_blank','noopener');}
+  function appleRoute(){if(!query()){toast('Digite o endereço de destino primeiro.');$('destination').focus();return}let url='https://maps.apple.com/?daddr='+encodeURIComponent(fullQuery())+'&dirflg=d';if(current)url+='&saddr='+encodeURIComponent(current.lat+','+current.lng);window.open(url,'_blank','noopener');$('status').textContent='A rota será aberta no Apple Maps. Confirme o endereço antes de iniciar a navegação.';}
+  $('searchForm').addEventListener('submit',e=>{e.preventDefault();appleSearch()});$('openSearch').addEventListener('click',appleSearch);$('navigate').addEventListener('click',appleRoute);
+  $('zoomIn').onclick=()=>map.zoomIn();$('zoomOut').onclick=()=>map.zoomOut();
+  function locate(){if(!navigator.geolocation){toast('Este navegador não oferece localização GPS.');return}if(!window.isSecureContext){toast('Para usar GPS, abra esta página por um endereço HTTPS seguro.');return}$('status').textContent='Solicitando permissão de localização…';navigator.geolocation.getCurrentPosition(pos=>{current={lat:pos.coords.latitude,lng:pos.coords.longitude};const ll=[current.lat,current.lng];if(currentMarker)currentMarker.setLatLng(ll);else currentMarker=L.circleMarker(ll,{radius:9,color:'#fff',weight:3,fillColor:'#2678ee',fillOpacity:1}).addTo(map).bindPopup('Sua localização atual');map.setView(ll,17);$('status').textContent='Localização obtida • precisão aproximada de '+Math.round(pos.coords.accuracy)+' m.';toast('Sua localização foi marcada no mapa.');if(watchId===null&&navigator.geolocation.watchPosition){watchId=navigator.geolocation.watchPosition(p=>{current={lat:p.coords.latitude,lng:p.coords.longitude};if(currentMarker)currentMarker.setLatLng([current.lat,current.lng]);},()=>{}, {enableHighAccuracy:true,maximumAge:5000,timeout:15000});}},err=>{let m='Não foi possível obter o GPS.';if(err.code===1)m='Permita o acesso à localização nas configurações do iPhone/Safari.';if(err.code===2)m='Sinal de localização indisponível. Tente novamente ao ar livre.';if(err.code===3)m='A localização demorou muito. Tente novamente.';$('status').textContent=m;toast(m);},{enableHighAccuracy:true,timeout:15000,maximumAge:5000});}
+  $('locate').addEventListener('click',locate);
+  // To keep this first prototype responsible and reliable, address search and turn-by-turn navigation
+  // are handed to Apple Maps rather than pretending an unverified local address database exists.
+  $('destination').addEventListener('change',()=>{const q=query();$('sheetTitle').textContent=q?'Destino informado':'Pronto para explorar a cidade?';$('sheetInfo').textContent=q?'Destino: '+q+'. Ao buscar, o Apple Maps tentará localizar o endereço; confira o número e o ponto no mapa.':'O mapa mostra a região central. Pesquise um endereço para abrir a busca no Apple Maps ou use sua localização para iniciar uma rota.';});
+})();
+</script>
+</body>
+</html>
